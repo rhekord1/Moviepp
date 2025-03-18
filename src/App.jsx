@@ -1,6 +1,9 @@
 import React, { useEffect,useState } from 'react'
 import Search from './components/Search'
 import Spinner from './components/Spinner';
+import MovieCard from './components/MovieCard';
+import { useDebounce } from 'react-use';
+import { updateSearchCount } from './appwrite';
 
 const API_BASE_URL = 'https://api.themoviedb.org/3';
 
@@ -20,13 +23,17 @@ const App = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [movieList, setMovieList] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [debounceSearchTerm, setdebounceSearchTerm] = useState('');
+ 
+  useDebounce(()=>setdebounceSearchTerm(searchTerm), 500, [searchTerm]);
 
-
-  const fetchMovies = async () => {
+  const fetchMovies = async (query = '') => {
     setIsLoading(true);
     setErrorMessage('');
     try{
-      const endpoint = `${API_BASE_URL}/discover/movie?sort_by=popularity.desc`;
+      const endpoint = query?
+      `${API_BASE_URL}/search/movie?query=${encodeURIComponent(query) }`
+      :`${API_BASE_URL}/discover/movie?sort_by=popularity.desc`;
 
       const response = await fetch(endpoint, API_OPTIONS);
 
@@ -44,6 +51,8 @@ const App = () => {
 
       setMovieList(data.results || []);
 
+      updateSearchCount();
+
     } catch(error){
       console.error(`Error fetch movies: ${error}`);
       setErrorMessage('Error fetching movies.PLease try again later.');
@@ -53,8 +62,8 @@ const App = () => {
   }
 
   useEffect( ()=>{
-        fetchMovies();
-        },[]);
+        fetchMovies(debounceSearchTerm);
+        },[debounceSearchTerm]);
 
   return (
     <main>
@@ -74,7 +83,7 @@ const App = () => {
           ):(
             <ul>
               {movieList.map((movie) => (
-                <p key={movie.id}className='text-white'>{movie.title}</p>
+                <MovieCard key ={movie.id} movie={movie}/>
               ))}
             </ul>
           )
@@ -83,7 +92,7 @@ const App = () => {
 
                   
         </section>
-       <h1 className="text-white">{searchTerm}</h1>
+       
       </div>
     </main>
 
