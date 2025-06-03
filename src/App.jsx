@@ -44,6 +44,8 @@ const App = () => {
 
       const data = await response.json();
 
+      
+
       if(data.Response === 'False'){
         setErrorMessage(data.Error || 'Failed to fetch  movies');
         setMovieList([]);
@@ -86,6 +88,7 @@ const App = () => {
 
   return (
     <main>
+      
        <div className="pattern "/>
       <div className="wrapper">
       <header>
